@@ -5,30 +5,31 @@
 # files.
 
 require 'cucumber/rails'
+require 'database_cleaner'
+require 'database_cleaner/cucumber'
 
+# Include factory_bot methods
 World(FactoryBot::Syntax::Methods)
+
+# Capybara config  with docker-compose environment vars
+Capybara.app_host = "http://#{ENV['TEST_APP_HOST']}:#{ENV['TEST_PORT']}"
+Capybara.javascript_driver = :selenium
+Capybara.run_server = false
+
+# Configure the Chrome driver capabilities & register
+args = ['--no-default-browser-check', '--start-maximized']
+caps = Selenium::WebDriver::Remote::Capabilities.chrome("chromeOptions" => {"args" => args})
+Capybara.register_driver :selenium do |app|
+  Capybara::Selenium::Driver.new(
+      app,
+      browser: :remote,
+      url: "http://#{ENV['SELENIUM_HOST']}:#{ENV['SELENIUM_PORT']}/wd/hub",
+      desired_capabilities: caps
+  )
+end
+
 # frozen_string_literal: true
 
-# Capybara defaults to CSS3 selectors rather than XPath.
-# If you'd prefer to use XPath, just uncomment this line and adjust any
-# selectors in your step definitions to use the XPath syntax.
-# Capybara.default_selector = :xpath
-
-# By default, any exception happening in your Rails application will bubble up
-# to Cucumber so that your scenario will fail. This is a different from how
-# your application behaves in the production environment, where an error page will
-# be rendered instead.
-#
-# Sometimes we want to override this default behaviour and allow Rails to rescue
-# exceptions and display an error page (just like when the app is running in production).
-# Typical scenarios where you want to do this is when you test your error pages.
-# There are two ways to allow Rails to rescue exceptions:
-#
-# 1) Tag your scenario (or feature) with @allow-rescue
-#
-# 2) Set the value below to true. Beware that doing this globally is not
-# recommended as it will mask a lot of errors for you!
-#
 ActionController::Base.allow_rescue = false
 
 # Remove/comment out the lines below if your app doesn't have a database.
@@ -37,6 +38,10 @@ begin
   DatabaseCleaner.strategy = :transaction
 rescue NameError
   raise "You need to add database_cleaner to your Gemfile (in the :test group) if you wish to use it."
+end
+
+Around do |scenario, block|
+  DatabaseCleaner.cleaning(&block)
 end
 
 # You may also want to configure DatabaseCleaner to use different strategies for certain features and scenarios.
