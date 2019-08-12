@@ -15,4 +15,17 @@
 // const images = require.context('../images', true)
 // const imagePath = (name) => images(name, true)
 
-console.log('Hello World from Webpacker')
+import Vue from 'vue'
+import App from './app.vue'
+import VueResource from 'vue-resource';
+import TurbolinksAdapter from 'vue-turbolinks';
+
+Vue.use(VueResource);
+Vue.use(TurbolinksAdapter);
+
+document.addEventListener('turbolinks:load', () => {
+  cont app = new Vue({
+    el: '#portfolio-edit',
+    render: h => h(App)
+  })
+})
