@@ -24,7 +24,7 @@ Vue.use(VueResource);
 Vue.use(TurbolinksAdapter);
 
 document.addEventListener('turbolinks:load', () => {
-  cont app = new Vue({
+  const app = new Vue({
     el: '#portfolio-edit',
     render: h => h(App)
   })
